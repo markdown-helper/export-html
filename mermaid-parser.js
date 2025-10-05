@@ -69,7 +69,17 @@ export async function renderMarkdown({ mdUrl, outputId }) {
 
   // Load GitHub Markdown CSS (theme-aware) and minimal overrides to improve table rendering
   try {
+    const absLight = new URL(GITHUB_MD_CSS_LIGHT, document.baseURI).href;
+    const absDark = new URL(GITHUB_MD_CSS_DARK, document.baseURI).href;
     const isDarkTheme = !FORCE_LIGHT && (document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast'));
+    if (FORCE_LIGHT) {
+      // Remove any dark GitHub Markdown CSS to ensure light styles win
+      Array.from(document.querySelectorAll('link[rel="stylesheet"]')).forEach((l) => {
+        if (l.href === absDark || /github-markdown-dark/i.test(l.href)) {
+          try { l.parentNode.removeChild(l); } catch (_) {}
+        }
+      });
+    }
     loadCSS(isDarkTheme ? GITHUB_MD_CSS_DARK : GITHUB_MD_CSS_LIGHT);
   } catch (_) {}
   try {
@@ -92,6 +102,16 @@ export async function renderMarkdown({ mdUrl, outputId }) {
       .markdown-body ol.footnote-list li { margin-bottom: 8px; }
       .markdown-body .footnote-backref { margin-left: 6px; text-decoration: none; }
     `);
+  } catch (_) {}
+  try {
+    if (FORCE_LIGHT) {
+      // Explicit light palette inside markdown container to override VSCode dark UI
+      addStyle('mhe-force-light', `
+        .markdown-body { background-color: #ffffff; color: #24292e; }
+        .markdown-body a { color: #0969da; }
+        .markdown-body pre, .markdown-body code { background-color: #f6f8fa; color: #24292e; }
+      `);
+    }
   } catch (_) {}
   try {
     const res = await fetch(mdUrl);
