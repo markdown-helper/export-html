@@ -105,6 +105,20 @@ export async function renderMarkdown({ mdUrl, outputId }) {
   } catch (_) {}
   try {
     if (FORCE_LIGHT) {
+      addStyle('mhe-force-light-tables', `
+        /* Force light tables even under VSCode dark container */
+        .markdown-body { color-scheme: light !important; }
+        .markdown-body table { background-color: #ffffff !important; border-color: #d0d7de !important; border-collapse: collapse !important; }
+        .markdown-body th, .markdown-body td { background-color: #ffffff !important; border: 1px solid #d0d7de !important; }
+        .markdown-body thead th { background-color: #f6f8fa !important; }
+        .markdown-body tbody tr { background-color: #ffffff !important; }
+        .markdown-body tbody tr:nth-child(2n) { background-color: #f6f8fa !important; }
+        .markdown-body table code { background-color: #f6f8fa !important; color: #24292e !important; }
+      `);
+    }
+  } catch (_) {}
+  try {
+    if (FORCE_LIGHT) {
       // Explicit light palette inside markdown container to override VSCode dark UI
       addStyle('mhe-force-light', `
         .markdown-body { background-color: #ffffff; color: #24292e; }
@@ -235,6 +249,48 @@ export async function renderMarkdown({ mdUrl, outputId }) {
   out.classList.add('markdown-body');
   out.innerHTML = '';
   out.append(...container.childNodes);
+
+  // When forcing light theme, hard-enforce light table styling with inline styles (highest priority)
+  if (FORCE_LIGHT) {
+    try {
+      // Ensure container uses light color scheme regardless of host
+      out.style.setProperty('color-scheme', 'light', 'important');
+
+      const set = (el, prop, val) => { try { el.style.setProperty(prop, val, 'important'); } catch (_) {} };
+
+      // Tables container/background/border behavior
+      out.querySelectorAll('table').forEach((t) => {
+        set(t, 'background-color', '#ffffff');
+        set(t, 'border-collapse', 'collapse');
+        set(t, 'border-color', '#d0d7de');
+      });
+
+      // Header cells
+      out.querySelectorAll('thead th').forEach((th) => {
+        set(th, 'background-color', '#f6f8fa');
+        set(th, 'border', '1px solid #d0d7de');
+        set(th, 'color', '#24292e');
+      });
+
+      // Body rows striping
+      out.querySelectorAll('tbody tr').forEach((tr, idx) => {
+        set(tr, 'background-color', (idx % 2 === 1) ? '#f6f8fa' : '#ffffff');
+      });
+
+      // All table cells
+      out.querySelectorAll('th, td').forEach((cell) => {
+        set(cell, 'background-color', '#ffffff');
+        set(cell, 'border', '1px solid #d0d7de');
+        set(cell, 'color', '#24292e');
+      });
+
+      // Code blocks inside tables
+      out.querySelectorAll('table code').forEach((code) => {
+        set(code, 'background-color', '#f6f8fa');
+        set(code, 'color', '#24292e');
+      });
+    } catch (_) {}
+  }
  
   // Append footnotes section if any [^id] refs are present
   try {
