@@ -27,8 +27,12 @@ export async function renderMarkdown({ mdUrl, outputId }) {
   let mdText = "";
 
   // Import selected config and helper dynamically (minified-aware via moduleUrl)
-  const { MARKED_URL, moduleUrl } = await import(CONFIG_URL);
+  const { MARKED_URL, moduleUrl, CDN_NPM_BASE } = await import(CONFIG_URL);
   const { enableGlobalNetworkSpinner } = await import(moduleUrl('lib/loader.js'));
+  const { loadCSS } = await import(moduleUrl('lib/load-css.js'));
+  const { addStyle } = await import(moduleUrl('lib/add-style.js'));
+  const GITHUB_MD_CSS_LIGHT = `${CDN_NPM_BASE}/github-markdown-css@5/github-markdown.min.css`;
+  const GITHUB_MD_CSS_DARK = `${CDN_NPM_BASE}/github-markdown-css@5/github-markdown-dark.min.css`;
 
   // Enable global network spinner and re-render diagrams when network becomes idle
   enableGlobalNetworkSpinner(outputId, "Loading...", async () => {
@@ -40,6 +44,18 @@ export async function renderMarkdown({ mdUrl, outputId }) {
       }
     } catch (_) {}
   });
+
+  // Load GitHub Markdown CSS (theme-aware) and minimal overrides to improve table rendering
+  try {
+    const isDarkTheme = document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast');
+    loadCSS(isDarkTheme ? GITHUB_MD_CSS_DARK : GITHUB_MD_CSS_LIGHT);
+  } catch (_) {}
+  try {
+    addStyle('mhe-markdown-overrides', `
+      .markdown-body { box-sizing: border-box; max-width: 100%; margin: 0; padding: 16px; }
+      .markdown-body table { display: block; width: max-content; max-width: 100%; overflow: auto; }
+    `);
+  } catch (_) {}
   try {
     const res = await fetch(mdUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
@@ -54,6 +70,7 @@ export async function renderMarkdown({ mdUrl, outputId }) {
   let html = "";
   try {
     const { marked } = await import(MARKED_URL);
+    marked.setOptions({ gfm: true, breaks: true, headerIds: true, mangle: false });
     html = marked.parse(mdText);
   } catch (err) {
     console.error("Marked parse error", err);
@@ -77,6 +94,7 @@ export async function renderMarkdown({ mdUrl, outputId }) {
   });
 
   // Inject into output
+  out.classList.add('markdown-body');
   out.innerHTML = '';
   out.append(...container.childNodes);
 
