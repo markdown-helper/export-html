@@ -107,7 +107,16 @@ export async function renderMarkdown({ mdUrl, outputId }) {
     deck.className = 'mhe-slides';
  
     const { slides } = splitMarkdownSlides(mdText);
- 
+    // Build a global footnote definitions map so slides can resolve definitions even if they appear in a different slide
+    const globalProc = (() => {
+      try {
+        return processFootnotesAndCitations(mdText);
+      } catch (_) {
+        return { footnoteDefs: {} };
+      }
+    })();
+    const globalFootnoteDefs = (globalProc && globalProc.footnoteDefs) ? globalProc.footnoteDefs : {};
+  
     // Prepare Marked once for all slides
     let marked;
     try {
@@ -151,7 +160,7 @@ export async function renderMarkdown({ mdUrl, outputId }) {
       });
  
       // Append footnotes and references within this slide
-      try { appendFootnotes(section, proc.footnoteOrder, proc.footnoteDefs); } catch (_) {}
+      try { appendFootnotes(section, proc.footnoteOrder, Object.assign({}, globalFootnoteDefs, proc.footnoteDefs)); } catch (_) {}
       try { appendReferences(section, proc.citations, bibliography); } catch (_) {}
  
       deck.appendChild(section);
