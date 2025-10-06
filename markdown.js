@@ -44,6 +44,7 @@ export async function renderMarkdown({ mdUrl, outputId }) {
   const { ensureGithubMarkdownStyles, enforceLightTables } = await import(moduleUrl('lib/github-theme.js'));
   const { ensureCitationStyles, extractBibliographyFromFrontMatter, processFootnotesAndCitations, appendFootnotes, appendReferences } = await import(moduleUrl('lib/citations.js'));
   const { detectSlidesEnabled, splitMarkdownSlides, ensureSlideStyles, initSlideDeck } = await import(moduleUrl('lib/slides.js'));
+  const { ensureTocStyles, initSidebarToc } = await import(moduleUrl('lib/toc.js'));
   // Force light theme when MHE_FORCE_LIGHT_THEME is truthy on window
   const FORCE_LIGHT = (typeof window !== 'undefined') && !!window.MHE_FORCE_LIGHT_THEME;
 
@@ -165,6 +166,9 @@ export async function renderMarkdown({ mdUrl, outputId }) {
  
     // Initialize slide navigation
     try { initSlideDeck(deck); } catch (_) {}
+    // Initialize sidebar Table of Contents (ToC)
+    try { ensureTocStyles({ moduleUrl, loadCSS }); } catch (_) {}
+    try { initSidebarToc(out); } catch (_) {}
   } else {
     // Single-document mode (legacy flow)
     // Process citations and footnotes skipping fenced code blocks
@@ -222,6 +226,10 @@ export async function renderMarkdown({ mdUrl, outputId }) {
     try {
       appendReferences(out, citations, bibliography);
     } catch (_) {}
+
+    // Initialize sidebar Table of Contents (ToC) for single-document mode
+    try { ensureTocStyles({ moduleUrl, loadCSS }); } catch (_) {}
+    try { initSidebarToc(out); } catch (_) {}
   }
 
   // Wait for mermaid global provided by icon.js

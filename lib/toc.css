@@ -1,0 +1,106 @@
+/* Minimal styles for the collapsible sidebar ToC added by lib/toc.js */
+ /* Keep styles minimal to avoid conflicts with existing page CSS */
+
+.md-toc a {
+  text-decoration: none;
+}
+
+.md-toc a.active {
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+/* Tidy up details/summary appearance */
+.md-toc details {
+  margin: 0;
+  padding: 0;
+}
+
+.md-toc details > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 2px 0;
+  user-select: none;
+}
+
+.md-toc details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.md-toc summary a {
+  font-weight: inherit;
+}
+
+/* List spacing inside ToC */
+.md-toc ul {
+  margin: 2px 0 4px 0;
+  padding-left: 1rem;
+}
+
+.md-toc li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Optional: subtle hover */
+.md-toc a:hover {
+  text-decoration: underline;
+}
+/* Toggle inline ToC visibility when sidebar ToC is shown */
+body[html-show-sidebar-toc] h2#daftar-isi,
+body[html-show-sidebar-toc] h2#daftar-isi + ul {
+  display: none !important;
+}
+
+/* Sidebar layout and toggle button (project-local, not MPE-dependent) */
+aside.md-sidebar-toc {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  max-width: 80vw;
+  height: 100vh;
+  overflow: auto;
+  background: var(--mhe-toc-bg, rgba(255,255,255,0.95));
+  color: inherit;
+  border-left: 1px solid rgba(128,128,128,0.25);
+  box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+  z-index: 9999;
+  padding: 12px;
+}
+
+body[html-show-sidebar-toc] aside.md-sidebar-toc {
+  transform: translateX(0);
+}
+
+#sidebar-toc-btn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  background: var(--mhe-toc-btn-bg, #eeeeee);
+  color: inherit;
+  border: 1px solid rgba(128,128,128,0.3);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  z-index: 10000;
+  user-select: none;
+}
+
+/* Theme-aware dark adjustments (works under VSCode dark class) */
+body.vscode-dark #sidebar-toc-btn {
+  background: var(--mhe-toc-btn-bg-dark, #222222);
+  border-color: rgba(255,255,255,0.2);
+}
+
+body.vscode-dark aside.md-sidebar-toc {
+  background: var(--mhe-toc-bg-dark, rgba(0,0,0,0.85));
+  border-left-color: rgba(255,255,255,0.2);
+  box-shadow: -2px 0 8px rgba(0,0,0,0.4);
+}
