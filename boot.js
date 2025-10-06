@@ -13,11 +13,13 @@
  * - data-base      : Base URL for local modules (optional; defaults to directory of boot.js). Typically omit when boot.js and modules share the same base.
  * - data-use-min   : Prefer minified local modules (1|true|yes|on). Optional; defaults to window.MHE_MODULE_USE_MINIFIED or inferred from this script filename (boot.min.js => true; boot.js => false).
  * - data-force-light : Force light theme (1|true|yes|on). Optional; defaults to window.MHE_FORCE_LIGHT_THEME or false.
+ * - data-two-col-min-width : Minimum viewport width in px to enable auto two-column slides (optional; defaults to 1000 unless overridden by window.MHE_TWO_COL_MIN_WIDTH or this attribute).
  *
  * Notes:
  * - Derives module base from import.meta.url directory when data-base is omitted, and assigns window.MHE_MODULE_BASE.
  * - Sets window.MHE_MODULE_USE_MINIFIED from data-use-min if provided, otherwise infers from this script filename (boot.min.js => true; boot.js => false).
  * - Sets window.MHE_FORCE_LIGHT_THEME from data-force-light if provided; renderer checks it to enforce light styles and tables.
+ * - Sets window.MHE_TWO_COL_MIN_WIDTH from data-two-col-min-width when provided (or uses the global if already set). The deck reads this to gate auto two-column layout.
  * - Sets window.MHE_CONFIG_URL to config.js or config.min.js based on the minified toggle.
  * - Imports icon.js and markdown.js via config.moduleUrl(), then calls renderMarkdown().
  */
@@ -63,6 +65,19 @@
   const forceLight = (ds.forceLight !== undefined)
     ? parseTruthy(ds.forceLight)
     : (typeof window !== 'undefined' ? parseTruthy(window.MHE_FORCE_LIGHT_THEME) : false);
+  // Optional: two-column width threshold (in px) via data-two-col-min-width or global MHE_TWO_COL_MIN_WIDTH
+  const twoColMinWidth = (() => {
+    const v = ds.twoColMinWidth;
+    if (v !== undefined && v !== null) {
+      const n = parseInt(String(v), 10);
+      return isFinite(n) && n > 0 ? n : undefined;
+    }
+    if (typeof window !== 'undefined' && 'MHE_TWO_COL_MIN_WIDTH' in window) {
+      const n = parseInt(String(window.MHE_TWO_COL_MIN_WIDTH), 10);
+      return isFinite(n) && n > 0 ? n : undefined;
+    }
+    return undefined;
+  })();
 
   if (!mdUrl || !outputId) {
     console.error('boot.js: data-md-url and data-output-id are required.');
@@ -73,6 +88,7 @@
   try { window.MHE_MODULE_BASE = base; } catch (_) {}
   try { window.MHE_MODULE_USE_MINIFIED = useMin; } catch (_) {}
   try { window.MHE_FORCE_LIGHT_THEME = forceLight; } catch (_) {}
+  try { if (twoColMinWidth !== undefined) window.MHE_TWO_COL_MIN_WIDTH = twoColMinWidth; } catch (_) {}
 
   // Resolve config URL based on base + min toggle and expose it for markdown.js
   let configUrl = '';
