@@ -1,6 +1,15 @@
-// Central CDN configuration for external resources.
-// Change CDN_NPM_BASE to switch all CDN references (jsDelivr, unpkg, etc.)
-
+/**
+* Configuration module.
+* Responsibilities:
+* - Define centralized CDN base and external library URLs (Mermaid, Marked, Font Awesome).
+* - Provide iconifyPackUrl() to resolve Iconify JSON collections with optional version.
+* - Resolve a base URL for local ESM modules via MHE_MODULE_BASE, honoring window override.
+* - Provide moduleUrl() helper to produce absolute URLs and optionally use minified variants.
+*
+* Notes:
+* - Set window.MHE_MODULE_BASE before loading modules to override local module base.
+* - Set window.MHE_MODULE_USE_MINIFIED to truthy to prefer *.min.js for local module paths.
+*/
 export const CDN_NPM_BASE = 'https://cdn.jsdelivr.net/npm';
 
 // Library URLs built from the base

@@ -1,4 +1,12 @@
-/* Local helper modules are imported dynamically via config.moduleUrl to honor window.MHE_MODULE_USE_MINIFIED */
+// Icon and diagram runtime initializer.
+// Responsibilities:
+// - Resolve config and dynamic module base via config.js.
+// - Load Font Awesome CSS if not already present.
+// - Enable a global network spinner (idempotent) to indicate resource loading.
+// - Load Mermaid once and expose window.__registerIconPacksFor to lazily register needed Iconify packs.
+// - Trigger a render of existing diagrams after packs registration.
+// Notes:
+// - Local helper modules are imported dynamically via config.moduleUrl honoring window.MHE_MODULE_USE_MINIFIED.
 
 // Resolve selected config URL (set by the page) or fall back to local config.js
 const CONFIG_URL =
@@ -40,9 +48,8 @@ async function registerMermaidRuntime() {
     return;
   }
 
-  // Enable global network spinner early (anchors to body).
-  enableGlobalNetworkSpinner(undefined, 'Loading resources...');
-
+  // Global network spinner is already enabled at module init; avoid redundant re-enable.
+ 
   // Expose a lazy registration function that only registers packs actually needed.
   const packMap = {
     logos: '@iconify-json/logos',
