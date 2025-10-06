@@ -73,6 +73,8 @@ export async function renderMarkdown({ mdUrl, outputId }) {
     const res = await fetch(mdUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
     mdText = await res.text();
+    // Expose original markdown for downstream helpers (e.g., footnote fallbacks)
+    try { window.__mheOriginalMarkdown = mdText; } catch (_) {}
   } catch (err) {
     console.error("Failed to fetch markdown", err);
     out.textContent = "Error loading markdown.";
@@ -116,6 +118,8 @@ export async function renderMarkdown({ mdUrl, outputId }) {
       }
     })();
     const globalFootnoteDefs = (globalProc && globalProc.footnoteDefs) ? globalProc.footnoteDefs : {};
+    // Expose for downstream components and as a fallback for modules
+    try { window.__mheFootnoteDefs = globalFootnoteDefs; } catch (_) {}
   
     // Prepare Marked once for all slides
     let marked;
@@ -187,6 +191,8 @@ export async function renderMarkdown({ mdUrl, outputId }) {
       citations = processed.citations;
       footnoteOrder = processed.footnoteOrder;
       footnoteDefs = processed.footnoteDefs;
+      // Expose for downstream renderers and as a fallback for modules
+      try { window.__mheFootnoteDefs = footnoteDefs; } catch (_) {}
     } catch (_) {}
  
     // Parse Markdown to HTML
