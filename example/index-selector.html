@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Example Selector</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  #content { min-height: 100vh; }
+  #controls { padding: 8px 12px; position: sticky; top: 0; background: rgba(240,240,240,0.9); backdrop-filter: saturate(1.5) blur(2px); border-bottom: 1px solid #ddd; z-index: 10; }
+  #controls label { margin-right: 8px; font-weight: 600; }
+  #md-selector { max-width: 320px; }
+</style>
+</head>
+<body>
+<!--
+This file is a more complex example of loading several markdown files with a selector.
+Usage
+
+1) Run the local dev server [example/server.py](example/server.py:1) with no-cache headers (avoids file:// CORS and stale assets)
+   - Windows (CMD/PowerShell) from repo root:
+     python example\server.py
+   - macOS/Linux from repo root:
+     python3 example/server.py
+   - Then open:
+     http://127.0.0.1:8000/example/index-selector.html
+
+2) Choose which markdown to render
+   - Use the "Markdown" selector at the top of the page.
+   - Deep-link via query string:
+     - http://127.0.0.1:8000/example/index-selector.html?md=./toc-cite-mermaid.md
+     - http://127.0.0.1:8000/example/index-selector.html?md=./slides.md
+
+3) What the inline script sets for the bootstrap in [boot.js](boot.js:1) and used by [markdown.js.renderMarkdown()](markdown.js:27)
+   - window.MHE_MD_URL         : selected markdown path (relative to this file)
+   - window.MHE_OUTPUT_ID      : 'content' (the container to render into)
+   - window.MHE_FORCE_LIGHT_THEME : true  (force light GitHub styles/tables)
+   - window.MHE_TWO_COL_MIN_WIDTH : 800  (slides auto two-column width threshold; adjust as needed)
+
+4) Mermaid icons in flowcharts (works with FA4)
+   - Inside node labels, use Font Awesome 4 syntax: fa:fa-<name>
+     Example (see [example/toc-cite-mermaid.md](example/toc-cite-mermaid.md:39)):
+       DS[fa:fa-object-group Design System]
+       LIB[fa:fa-archive Library / Package]
+       TPL[fa:fa-clone Template]
+   - Icon packs are registered lazily by [icon.js](icon.js:1) using helpers in [lib/loader.js.buildIconPack()](lib/loader.js:194).
+
+5) Architecture diagrams
+   - Mermaid 11 has evolving syntax between "architecture" and "architecture-beta".
+   - If a "Syntax error in text" banner appears, the current Mermaid build may not include that diagram type.
+   - The flowchart section remains the confirmed demo for icon rendering.
+
+Tip: The selector stores choice only in the URL (no state). Changing the dropdown reloads with ?md=... so that [boot.js](boot.js:1) can pick up the new window.MHE_MD_URL at startup.
+-->
+<div id="controls">
+  <!-- Minimal selector to choose which markdown file to load -->
+  <label for="md-selector">Markdown:</label>
+  <select id="md-selector">
+    <option value="./toc-cite-mermaid.md">ToC, Citations, Tables, Mermaid Icons</option>
+    <option value="./slides.md">Slides Demo</option>
+  </select>
+</div>
+<div id="content"></div>
+
+<script>
+  // Determine selected markdown via query string (?md=...), default to toc-cite-mermaid.md
+  const params = new URLSearchParams(location.search);
+  const mdPath = params.get('md') || './toc-cite-mermaid.md';
+
+  // Initialize selector UI state and wire change to reload the page with the chosen md file
+  const sel = document.getElementById('md-selector');
+  if (sel) {
+    sel.value = mdPath;
+    sel.addEventListener('change', () => {
+      const v = sel.value;
+      const url = new URL(location.href);
+      url.searchParams.set('md', v);
+      // Reload to run bootstrap with updated data-md-url
+      location.href = url.href;
+    });
+  }
+
+  // Optimize module loading with optional local testing:
+  // add &local=1 to query string to load local boot.js (uses local modules), otherwise CDN.
+  (function injectBoot() {
+    const useLocal = params.get('local') === '1';
+    const boot = document.createElement('script');
+    boot.type = 'module';
+    boot.src = useLocal
+      ? '../boot.js'
+      : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251006.10/boot.min.js';
+    boot.dataset.mdUrl = mdPath;              // which markdown to render
+    boot.dataset.outputId = 'content';        // container id
+    boot.dataset.forceLight = 'true';         // force light theme
+    boot.dataset.twoColMinWidth = '800';      // slides two-col threshold
+    document.body.appendChild(boot);
+  })();
+</script>
+<!--
+Bootstrap script is injected dynamically above from the CDN (or local when ?local=1):
+     https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251006.10/boot.min.js
+     Settings are provided via data-* attributes for optimal loading (no globals). -->
+</body>
+</html>
