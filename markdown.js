@@ -160,6 +160,7 @@ export async function renderMarkdown({ mdUrl, outputId }) {
         const div = document.createElement('div');
         div.className = 'mermaid';
         div.textContent = codeEl.textContent;
+        try { div.dataset.raw = codeEl.textContent; } catch (_) {}
         (pre || codeEl).replaceWith(div);
       });
  
@@ -219,6 +220,7 @@ export async function renderMarkdown({ mdUrl, outputId }) {
       const div = document.createElement('div');
       div.className = 'mermaid';
       div.textContent = codeEl.textContent;
+      try { div.dataset.raw = codeEl.textContent; } catch (_) {}
       (pre || codeEl).replaceWith(div);
     });
  
@@ -264,12 +266,19 @@ export async function renderMarkdown({ mdUrl, outputId }) {
     try {
       const isDark = !FORCE_LIGHT && (document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast'));
       mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default', securityLevel: 'loose' });
-      const nodes = out.querySelectorAll('.mermaid');
+      // Only render diagrams in the active slide when slides mode is present; otherwise render all.
+      const nodes = (() => {
+        const deck = out.querySelector('.mhe-slides');
+        if (deck) return out.querySelectorAll('.mhe-slide.is-active .mermaid');
+        return out.querySelectorAll('.mermaid');
+      })();
       if (typeof mermaid.run === 'function') {
         await mermaid.run({ nodes });
       } else if (typeof mermaid.init === 'function') {
         mermaid.init(undefined, nodes);
       }
+      // Notify slides.js to re-evaluate two-column layout after diagrams render
+      try { window.dispatchEvent(new CustomEvent('mhe:diagrams-rendered')); } catch (_) {}
     } catch (e) {
       console.error("Mermaid render error", e);
     }
@@ -303,6 +312,10 @@ export async function renderMarkdown({ mdUrl, outputId }) {
 
     // Initial render after packs/plugin are ready (or if no packs needed)
     await renderDiagrams();
+    // Listen for active slide changes to render only current slide's Mermaid
+    try {
+      window.addEventListener('mhe:render-active-mermaid', () => { renderDiagrams(); });
+    } catch (_) {}
   } catch (err) {
     console.error("Mermaid not ready to render yet", err);
   }
