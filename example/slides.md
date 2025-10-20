@@ -13,7 +13,9 @@ This markdown demonstrates the slide deck functionality:
 - Hash deep-linking: #slide-1, #slide-2, etc.
 -->
 
-# Slide 1 — Introduction
+# Slides Feature Demo
+
+## Slide 1 — Introduction
 
 Welcome to the Slides Feature Demo.
 
@@ -29,7 +31,7 @@ if your HTML uses [boot.js](boot.js) to initialize rendering and sets that attri
 
 ---
 
-# Slide 2 — Two-column Stress Test
+## Slide 2 — Two-column Stress Test
 
 The content here is designed to be tall, but still appropriate for two-column layout on sufficiently wide viewports.
 
@@ -62,7 +64,7 @@ Bullet list to increase height:
 
 ---
 
-# Slide 3 — Oversized Code Block (Disables Two-column)
+## Slide 3 — Oversized Code Block (Disables Two-column)
 
 Below is a tall code block. The layout logic should detect an oversized unbreakable block and revert to single column to prevent clipping.
 
@@ -105,7 +107,7 @@ function example(i) { return 'line ' + i; }
 
 ---
 
-# Slide 4 — Table Test
+## Slide 4 — Table Test
 
 | # | Item | Description |
 |---:|------|-------------|
@@ -124,7 +126,7 @@ function example(i) { return 'line ' + i; }
 
 ---
 
-# Slide 5 — Mermaid Diagram
+## Slide 5 — Mermaid Diagram
 
 ```mermaid
 graph TD
@@ -139,7 +141,7 @@ graph TD
 
 ---
 
-# Slide 6 — Image Example
+## Slide 6 — Image Example
 
 ![Example image — Wikimedia Example.jpg](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Example.jpg/640px-Example.jpg)
 
@@ -147,6 +149,6 @@ This image is loaded directly from the internet using standard Markdown image sy
 
 ---
 
-# Slide 7 — Closing
+## Slide 7 — Closing
 
 This final slide wraps up the demo. Use the Table of Contents (ToC) toggle button (☰) to jump to headings across slides.

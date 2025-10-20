@@ -1,5 +1,4 @@
 ---
-title: ToC, Citations, Tables, and Mermaid Icons Demo
 # bibliography: ./bibliography.bib
 ---
 
@@ -11,7 +10,9 @@ This markdown demonstrates:
 - Mermaid diagrams with Iconify icons in flowchart and architecture-beta
 -->
 
-# Overview
+# ToC, Citations, Tables, and Mermaid Icons Demo
+
+## Overview
 
 This document shows how features are rendered. The sidebar ToC is generated automatically from the headings below; you can toggle it using the ☰ button in top right.
 

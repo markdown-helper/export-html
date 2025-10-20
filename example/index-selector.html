@@ -56,7 +56,7 @@ Tip: The selector stores choice only in the URL (no state). Changing the dropdow
   <!-- Minimal selector to choose which markdown file to load -->
   <label for="md-selector">Markdown:</label>
   <select id="md-selector">
-    <option value="./toc-cite-mermaid.md">ToC, Citations, Tables, Mermaid Icons</option>
+    <option value="./index.md">ToC, Citations, Tables, Mermaid Icons</option>
     <option value="./slides.md">Slides Demo</option>
   </select>
 </div>
@@ -65,7 +65,7 @@ Tip: The selector stores choice only in the URL (no state). Changing the dropdow
 <script>
   // Determine selected markdown via query string (?md=...), default to toc-cite-mermaid.md
   const params = new URLSearchParams(location.search);
-  const mdPath = params.get('md') || './toc-cite-mermaid.md';
+  const mdPath = params.get('md') || './index.md';
 
   // Initialize selector UI state and wire change to reload the page with the chosen md file
   const sel = document.getElementById('md-selector');
@@ -88,7 +88,7 @@ Tip: The selector stores choice only in the URL (no state). Changing the dropdow
     boot.type = 'module';
     boot.src = useLocal
       ? '../boot.js'
-      : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251011.1/boot.min.js';
+      : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251020.1/boot.min.js';
     boot.dataset.mdUrl = mdPath;              // which markdown to render
     boot.dataset.outputId = 'content';        // container id
     boot.dataset.forceLight = 'true';         // force light theme

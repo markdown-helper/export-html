@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Example: Simple Markdown</title>
 </head>
 <body>
 <!--
@@ -21,15 +20,22 @@ A more complex example with a selector is available at example/index-selector.ht
 (function injectBoot() {
   const params = new URLSearchParams(location.search);
   const useLocal = params.get('local') === '1';
+
+  // Configure via globals to keep HTML minimal
+  window.MHE_OUTPUT_ID = 'content';
+  window.MHE_FORCE_LIGHT_THEME = true;
+  window.MHE_TWO_COL_MIN_WIDTH = 800;
+
+  // CDN boot.min.js expects a markdown URL; provide simple default
+  if (!useLocal) {
+    window.MHE_MD_URL = './index.md';
+  }
+
   const boot = document.createElement('script');
   boot.type = 'module';
   boot.src = useLocal
     ? '../boot.js'
-    : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251011.1/boot.min.js';
-  boot.dataset.mdUrl = './toc-cite-mermaid.md';
-  boot.dataset.outputId = 'content';
-  boot.dataset.forceLight = 'true';
-  boot.dataset.twoColMinWidth = '800';
+    : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251020.1/boot.min.js';
   document.body.appendChild(boot);
 })();
 </script>

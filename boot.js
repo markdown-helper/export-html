@@ -8,12 +8,20 @@
  *           data-force-light="true"></script>
  *
  * Attributes:
- * - data-md-url    : URL to the markdown file (required)
- * - data-output-id : ID of the container element to render into (required)
+ * - data-md-url    : URL to the markdown file (optional). If omitted, boot derives it from the current page URL:
+ *                    - index.html/.htm -> index.md
+ *                    - /path/ -> /path/index.md
+ *                    - otherwise -> append ".md"
+ *                    Alternatively set window.MHE_MD_URL.
+ * - data-output-id : ID of the container element to render into (required). Alternatively set window.MHE_OUTPUT_ID.
  * - data-base      : Base URL for local modules (optional; defaults to directory of boot.js). Typically omit when boot.js and modules share the same base.
  * - data-use-min   : Prefer minified local modules (1|true|yes|on). Optional; defaults to window.MHE_MODULE_USE_MINIFIED or inferred from this script filename (boot.min.js => true; boot.js => false).
  * - data-force-light : Force light theme (1|true|yes|on). Optional; defaults to window.MHE_FORCE_LIGHT_THEME or false.
  * - data-two-col-min-width : Minimum viewport width in px to enable auto two-column slides (optional; defaults to 1000 unless overridden by window.MHE_TWO_COL_MIN_WIDTH or this attribute).
+ *
+ * Global configuration (optional):
+ * - window.MHE_MD_URL, window.MHE_OUTPUT_ID, window.MHE_MODULE_BASE, window.MHE_MODULE_USE_MINIFIED,
+ *   window.MHE_FORCE_LIGHT_THEME, window.MHE_TWO_COL_MIN_WIDTH can be used instead of data-*.
  *
  * Notes:
  * - Derives module base from import.meta.url directory when data-base is omitted, and assigns window.MHE_MODULE_BASE.
@@ -46,7 +54,7 @@
 
   const ds = (scriptEl && scriptEl.dataset) || {};
 
-  const mdUrl = ds.mdUrl || (typeof window !== 'undefined' ? window.MHE_MD_URL : '');
+  let mdUrl = ds.mdUrl || (typeof window !== 'undefined' ? window.MHE_MD_URL : '');
   const outputId = ds.outputId || (typeof window !== 'undefined' ? window.MHE_OUTPUT_ID : '');
   const base =
     ds.base ||
@@ -79,8 +87,31 @@
     return undefined;
   })();
 
-  if (!mdUrl || !outputId) {
-    console.error('boot.js: data-md-url and data-output-id are required.');
+  // Derive mdUrl from the current page when not provided
+  if (!mdUrl) {
+    try {
+      const pageUrl = new URL(document.location.href);
+      pageUrl.search = '';
+      pageUrl.hash = '';
+      const path = pageUrl.pathname || '';
+      let mdPath = '';
+      if (/\.(html?|HTML?)$/.test(path)) {
+        mdPath = path.replace(/\.(html?|HTML?)$/, '.md');
+      } else if (path.endsWith('/')) {
+        mdPath = path + 'index.md';
+      } else {
+        mdPath = path + '.md';
+      }
+      mdUrl = new URL(mdPath, pageUrl).href;
+    } catch (_) {}
+  }
+
+  if (!outputId) {
+    console.error('boot.js: data-output-id is required.');
+    return;
+  }
+  if (!mdUrl) {
+    console.error('boot.js: Unable to determine markdown URL. Provide data-md-url or ensure the page URL ends with .html/.htm or a directory.');
     return;
   }
 
@@ -103,6 +134,47 @@
   // Async boot
   (async () => {
     try {
+      // If the HTML has no <title>, derive it from the first Markdown heading (ignoring YAML front matter)
+      const hasTitleEl = !!document.querySelector('head > title');
+      if (!hasTitleEl) {
+        try {
+          const resp = await fetch(mdUrl);
+          if (resp.ok) {
+            const mdText = await resp.text();
+
+            const extractFirstHeading = (text) => {
+              // Strip leading YAML front matter delimited by --- ... ---
+              let body = text;
+              const lines = body.split(/\r?\n/);
+              if (lines.length > 0 && /^\s*---\s*$/.test(lines[0])) {
+                let end = -1;
+                for (let i = 1; i < lines.length; i++) {
+                  if (/^\s*---\s*$/.test(lines[i])) { end = i; break; }
+                }
+                if (end !== -1) {
+                  body = lines.slice(end + 1).join('\n');
+                }
+              }
+
+              // ATX heading: #, ##, ..., ######
+              const atx = body.match(/^\s*#{1,6}\s+(.+?)\s*$/m);
+              if (atx && atx[1]) return atx[1].trim();
+
+              // Setext heading: text followed by === or ---
+              const setext = body.match(/^\s*([^\n]+?)\s*\r?\n\s*(?:=+|-+)\s*$/m);
+              if (setext && setext[1]) return setext[1].trim();
+
+              return null;
+            };
+
+            const titleText = extractFirstHeading(mdText);
+            if (titleText) {
+              document.title = titleText;
+            }
+          }
+        } catch (_) {}
+      }
+
       const { moduleUrl } = await import(configUrl);
       // Load icon runtime first (provides Mermaid global and Font Awesome CSS)
       await import(moduleUrl('icon.js'));
