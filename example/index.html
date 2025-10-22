@@ -3,6 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+(function injectBoot() {
+  const params = new URLSearchParams(location.search);
+  const useLocal = params.get('local') === '1';
+
+  // You can specify where the rendered html will be, e.g. in a div with that id 
+  // window.MHE_OUTPUT_ID = 'content';
+  // window.MHE_FORCE_LIGHT_THEME makes the lib use light theme when set to true (the default),
+  // follow vscode theme when false
+  window.MHE_TWO_COL_MIN_WIDTH = 800;
+
+  // window.MHE_MD_URL specify which markdown file to load. Default to load the same
+  // name as the html file, but with dm extension. e.g. index.html -> index.md
+  // window.MHE_MD_URL = './index.md';
+
+  const boot = document.createElement('script');
+  boot.type = 'module';
+  boot.src = useLocal
+    ? '../boot.js'
+    : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251021.1/boot.min.js';
+  document.head.appendChild(boot);
+})();
+</script>
 </head>
 <body>
 <!--
@@ -11,33 +34,14 @@ Usage:
 1) Run the local dev server example/server.py
    - Windows: python example\server.py
    - macOS/Linux: python3 example/server.py
-   Then open: http://127.0.0.1:8000/example/index.html
+   Then open:
+   - http://127.0.0.1:8000/example/index.html to load library from CDN, or
+   - http://127.0.0.1:8000/example/index.html?local=1 to load library from local (../boot.js),
+     e.g. after you clone this repo from git
+
 
 A more complex example with a selector is available at example/index-selector.html
 -->
 <div id="content"></div>
-<script>
-(function injectBoot() {
-  const params = new URLSearchParams(location.search);
-  const useLocal = params.get('local') === '1';
-
-  // Configure via globals to keep HTML minimal
-  window.MHE_OUTPUT_ID = 'content';
-  window.MHE_FORCE_LIGHT_THEME = true;
-  window.MHE_TWO_COL_MIN_WIDTH = 800;
-
-  // CDN boot.min.js expects a markdown URL; provide simple default
-  if (!useLocal) {
-    window.MHE_MD_URL = './index.md';
-  }
-
-  const boot = document.createElement('script');
-  boot.type = 'module';
-  boot.src = useLocal
-    ? '../boot.js'
-    : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251020.1/boot.min.js';
-  document.body.appendChild(boot);
-})();
-</script>
 </body>
 </html>

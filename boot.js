@@ -55,7 +55,7 @@
   const ds = (scriptEl && scriptEl.dataset) || {};
 
   let mdUrl = ds.mdUrl || (typeof window !== 'undefined' ? window.MHE_MD_URL : '');
-  const outputId = ds.outputId || (typeof window !== 'undefined' ? window.MHE_OUTPUT_ID : '');
+  let outputId = ds.outputId || (typeof window !== 'undefined' ? window.MHE_OUTPUT_ID : '');
   const base =
     ds.base ||
     (typeof window !== 'undefined' && window.MHE_MODULE_BASE) ||
@@ -70,9 +70,15 @@
     : (typeof window !== 'undefined' && 'MHE_MODULE_USE_MINIFIED' in window)
       ? parseTruthy(window.MHE_MODULE_USE_MINIFIED)
       : inferredMin;
+  // Resolve forceLight with precedence:
+  // 1) data-force-light attribute on the boot script (highest)
+  // 2) window.MHE_FORCE_LIGHT_THEME if explicitly defined
+  // 3) default: true (light theme)
   const forceLight = (ds.forceLight !== undefined)
     ? parseTruthy(ds.forceLight)
-    : (typeof window !== 'undefined' ? parseTruthy(window.MHE_FORCE_LIGHT_THEME) : false);
+    : (typeof window !== 'undefined' && ('MHE_FORCE_LIGHT_THEME' in window))
+      ? parseTruthy(window.MHE_FORCE_LIGHT_THEME)
+      : true;
   // Optional: two-column width threshold (in px) via data-two-col-min-width or global MHE_TWO_COL_MIN_WIDTH
   const twoColMinWidth = (() => {
     const v = ds.twoColMinWidth;
@@ -107,8 +113,9 @@
   }
 
   if (!outputId) {
-    console.error('boot.js: data-output-id is required.');
-    return;
+    // Replace all body content with a single container div
+    document.body.innerHTML = '<div id="mhe-output"></div>';
+    outputId = 'mhe-output';
   }
   if (!mdUrl) {
     console.error('boot.js: Unable to determine markdown URL. Provide data-md-url or ensure the page URL ends with .html/.htm or a directory.');

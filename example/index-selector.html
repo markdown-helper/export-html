@@ -25,6 +25,9 @@ Usage
    - Then open:
      http://127.0.0.1:8000/example/index-selector.html
 
+   Bootstrap script is injected dynamically above from the CDN (or local when ?local=1).
+   Settings are provided via data-* attributes for optimal loading (no globals). 
+
 2) Choose which markdown to render
    - Use the "Markdown" selector at the top of the page.
    - Deep-link via query string:
@@ -61,7 +64,6 @@ Tip: The selector stores choice only in the URL (no state). Changing the dropdow
   </select>
 </div>
 <div id="content"></div>
-
 <script>
   // Determine selected markdown via query string (?md=...), default to toc-cite-mermaid.md
   const params = new URLSearchParams(location.search);
@@ -88,17 +90,14 @@ Tip: The selector stores choice only in the URL (no state). Changing the dropdow
     boot.type = 'module';
     boot.src = useLocal
       ? '../boot.js'
-      : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251020.1/boot.min.js';
+      : 'https://cdn.jsdelivr.net/gh/markdown-helper/export-html@v0.251021.1/boot.min.js';
     boot.dataset.mdUrl = mdPath;              // which markdown to render
-    boot.dataset.outputId = 'content';        // container id
-    boot.dataset.forceLight = 'true';         // force light theme
-    boot.dataset.twoColMinWidth = '800';      // slides two-col threshold
-    document.body.appendChild(boot);
+    boot.dataset.outputId = 'content';        // container id. optional, use <body> when not specified
+                                              // needed for this file, since md selector is also in <body>
+    // boot.dataset.forceLight = 'true';      // force light theme. optional, default true.
+    // boot.dataset.twoColMinWidth = '800';   // slides two-col threshold. optional
+    document.head.appendChild(boot);
   })();
 </script>
-<!--
-Bootstrap script is injected dynamically above from the CDN (or local when ?local=1).
-Settings are provided via data-* attributes for optimal loading (no globals). 
--->
 </body>
 </html>

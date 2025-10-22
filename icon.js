@@ -85,8 +85,17 @@ async function registerMermaidRuntime() {
       try {
         const nodes = document.querySelectorAll('.mermaid');
         if (nodes.length) {
-          const isDark = document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast');
-          mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default', securityLevel: 'loose' });
+          // Respect forced light theme when re-initializing Mermaid after icon packs are registered.
+          const forceLight = (typeof window !== 'undefined') && !!window.MHE_FORCE_LIGHT_THEME;
+          const isDark = !forceLight && (
+            document.body.classList.contains('vscode-dark') ||
+            document.body.classList.contains('vscode-high-contrast')
+          );
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: isDark ? 'dark' : 'default',
+            securityLevel: 'loose'
+          });
           if (typeof mermaid.run === 'function') {
             mermaid.run({ nodes });
           } else if (typeof mermaid.init === 'function') {
